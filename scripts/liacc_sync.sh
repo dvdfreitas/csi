@@ -10,6 +10,8 @@
 # lados. O que fica em ~/csi lá:
 #   scripts/                            (sem __pycache__)
 #   storage/app/private/runs/run.json
+#
+# As respostas locais não sobem: quem as produz é o servidor.
 
 set -euo pipefail
 
@@ -18,5 +20,9 @@ REMOTE_DIR="csi"
 LOCAL="$(cd "$(dirname "$0")/.." && pwd)"
 
 cd "$LOCAL"
-tar czf - --exclude=__pycache__ scripts storage/app/private/runs \
-| ssh "$HOST" "mkdir -p '$REMOTE_DIR/logs' && tar xzvf - -C '$REMOTE_DIR'"
+# --warning=no-timestamp no tar remoto: o relógio do servidor atrasa alguns
+# segundos face a este, e os ficheiros recém-escritos parecem vir do futuro.
+tar czf - --exclude=__pycache__ --exclude='*-answers.jsonl' \
+  scripts \
+  storage/app/private/runs \
+| ssh "$HOST" "mkdir -p '$REMOTE_DIR/logs' && tar xzvf - --warning=no-timestamp -C '$REMOTE_DIR'"

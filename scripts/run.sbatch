@@ -10,8 +10,8 @@
 #   id=$(sbatch --parsable scripts/run.sbatch)
 #   squeue -u $USER && tail -F logs/csi-run-$id.out
 #
-# This cluster's gpu_batch QOS: at most 2 GPUs per job and 2 in use per user at a
-# time, and at most 10 jobs submitted.
+# This cluster's gpu_batch QOS, read from sacctmgr: at most 12h of wall time per
+# job, 2 GPUs per job and 2 in use per user at a time, and 10 jobs submitted.
 #
 # Submit from ~/csi, where scripts/liacc_sync.sh puts everything. Warm the uv cache
 # once on the login node first — the compute nodes may have no network:
@@ -29,9 +29,10 @@
 #SBATCH --gres=gpu:H100:1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
-# The partitions accept infinite jobs; this is our own guard against a hung one. One
-# job runs every model in the run file in sequence, so raise it for a long run.
-#SBATCH --time=24:00:00
+# 12h is the QOS ceiling, not a choice: asking for more is refused outright with
+# QOSMaxWallDurationPerJobLimit. One job runs every model in the run file in
+# sequence, so a run that does not fit has to be split into several run files.
+#SBATCH --time=12:00:00
 #SBATCH --output=logs/%x-%j.out
 #SBATCH --error=logs/%x-%j.out
 
