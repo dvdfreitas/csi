@@ -19,6 +19,10 @@
                     <flux:sidebar.item icon="queue-list" :href="route('questions')" :current="request()->routeIs('questions')" wire:navigate>
                         {{ __('Questions') }}
                     </flux:sidebar.item>
+
+                    <flux:sidebar.item icon="cpu-chip" :href="route('llms')" :current="request()->routeIs('llms')" wire:navigate>
+                        {{ __('LLMs') }}
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 

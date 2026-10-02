@@ -1,10 +1,15 @@
 <?php
 
 use App\Livewire\Questions;
+use App\Models\Llm;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
+
+Route::get('llms', fn () => view('llms', [
+    'llms' => Llm::orderBy('parameters')->get(),
+]))->name('llms');
 
 Route::livewire('questions', Questions::class)->name('questions');
 
