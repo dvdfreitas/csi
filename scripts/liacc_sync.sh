@@ -1,17 +1,20 @@
 #!/bin/bash
-# Copia os scripts deste projeto para o servidor do LIACC.
-# Precisa da VPN da FEUP: o host está num endereço 10.x privado.
-# O caminho de volta é scripts/liacc_fetch.sh.
+# Push this project's scripts and run file to the LIACC server.
+# Requires the FEUP VPN to be up (the host is on a private 10.x address).
+# The way back is scripts/liacc_fetch.sh.
 #
-# Usa tar sobre ssh em vez de rsync, porque o servidor não tem rsync. Tudo passa
-# numa única ligação, logo a password é pedida uma vez.
+# Uses tar over ssh rather than rsync, because the server has no rsync.
+# Everything goes through a single ssh connection, so it asks for the password
+# once.
 #
-# A estrutura no servidor é igual à de cá, para o mesmo comando correr nos dois
-# lados. O que fica em ~/csi lá:
-#   scripts/                            (sem __pycache__)
+# The tree on the server mirrors this one, so the same command runs on both
+# sides. What lands in ~/csi there:
+#   scripts/                            (without __pycache__)
 #   storage/app/private/runs/run.json
 #
-# As respostas locais não sobem: quem as produz é o servidor.
+# Local answers are not pushed: the server is what produces them, one file per
+# model in runs/answers/. Neither is run.log, which is the log of a run started
+# from the app on this machine; on the server the log goes to logs/.
 
 set -euo pipefail
 
@@ -20,9 +23,10 @@ REMOTE_DIR="csi"
 LOCAL="$(cd "$(dirname "$0")/.." && pwd)"
 
 cd "$LOCAL"
-# --warning=no-timestamp no tar remoto: o relógio do servidor atrasa alguns
-# segundos face a este, e os ficheiros recém-escritos parecem vir do futuro.
-tar czf - --exclude=__pycache__ --exclude='*-answers.jsonl' \
+# --warning=no-timestamp on the remote tar: the server's clock runs a few
+# seconds behind this one, so freshly written files look like they come from
+# the future.
+tar czf - --exclude=__pycache__ --exclude=answers --exclude=run.log \
   scripts \
   storage/app/private/runs \
 | ssh "$HOST" "mkdir -p '$REMOTE_DIR/logs' && tar xzvf - --warning=no-timestamp -C '$REMOTE_DIR'"

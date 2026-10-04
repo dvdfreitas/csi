@@ -3,16 +3,16 @@
 # requires-python = ">=3.10"
 # dependencies = ["datasets>=5.0.1", "psycopg[binary]>=3.2"]
 # ///
-"""Importa datasets de perguntas do Hugging Face para a tabela questions.
+"""Import question datasets from the Hugging Face into the questions table.
 
     uv run scripts/import.py gsm8k
 
-Cada dataset é um ficheiro em scripts/datasets/ que define DATASET (o nome no
-Hugging Face), DEFAULTS (valores comuns a todas as linhas) e rows(), que gera um
-dict por pergunta. As colunas dataset e hash são preenchidas aqui.
+Each dataset is a file in scripts/datasets/ defining DATASET (its Hugging Face
+name), DEFAULTS (values shared by every row) and rows(), which yields one dict
+per question. The dataset and hash columns are filled in here.
 
-Não acrescentes um __init__.py a essa pasta: passaria a pacote regular e tomaria
-o lugar da biblioteca datasets do Hugging Face nos imports.
+Do not add an __init__.py to that folder: it would become a regular package and
+take the place of the Hugging Face datasets library in every import.
 """
 
 import argparse
@@ -43,7 +43,7 @@ UPSERT = """
 
 
 def env() -> dict:
-    """As variáveis do .env do Laravel."""
+    """The variables in Laravel's .env."""
     values = {}
     for line in (ROOT / ".env").read_text(encoding="utf-8").splitlines():
         line = line.strip().removeprefix("export ")
@@ -55,7 +55,7 @@ def env() -> dict:
 
 
 def record(dataset: str, defaults: dict, row: dict) -> dict:
-    """Uma linha do importer com o dataset e o hash preenchidos."""
+    """One importer row with the dataset and the hash filled in."""
     record = {**OPTIONAL, **defaults, **row, "dataset": dataset}
     normalized = " ".join(record["statement"].split()).lower()
     record["hash"] = hashlib.sha256(f"{normalized}\n{record['language']}".encode()).hexdigest()
@@ -67,7 +67,7 @@ def main() -> None:
     available = sorted(path.stem for path in DATASETS.glob("*.py"))
 
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("dataset", choices=available, help="dataset a importar")
+    parser.add_argument("dataset", choices=available, help="dataset to import")
     args = parser.parse_args()
 
     sys.path.insert(0, str(DATASETS))
@@ -87,7 +87,7 @@ def main() -> None:
     ) as conn:
         conn.cursor().executemany(UPSERT, rows)
 
-    print(f"{module.DATASET}: {len(rows)} linhas", file=sys.stderr)
+    print(f"{module.DATASET}: {len(rows)} rows", file=sys.stderr)
 
 
 if __name__ == "__main__":

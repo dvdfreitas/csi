@@ -40,6 +40,14 @@ set -euo pipefail
 
 cd "$SLURM_SUBMIT_DIR"
 
+# Every path below is relative to the project root, and Slurm starts the job
+# wherever it was submitted from — including scripts/, which then looks for
+# scripts/scripts/cultural.py and fails with a bare "Failed to spawn".
+if [ ! -f scripts/cultural.py ]; then
+    echo "Submit from the project root (~/csi), not from $PWD" >&2
+    exit 1
+fi
+
 # Keep the model weights out of the home quota. sbatch exports the submitting shell's
 # environment, so HF_HOME usually arrives already set from ~/.bashrc; this is only the
 # fallback when it does not.
